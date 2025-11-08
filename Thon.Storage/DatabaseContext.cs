@@ -10,6 +10,8 @@ internal class DatabaseContext : DbContext
 
     public DbSet<UserAdminAuthEntity> AdminUserAuths => Set<UserAdminAuthEntity>();
 
+    public DbSet<ApiTokenEntity> ApiTokens => Set<ApiTokenEntity>();
+
     public DatabaseContext(DbContextOptions<DatabaseContext> options): base(options)
     {
         Database.EnsureCreated();
@@ -17,6 +19,8 @@ internal class DatabaseContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfiguration<ApiTokenEntity>(new ApiTokenEntityConfiguration());
+
         modelBuilder.ApplyConfiguration<UserAdminEntity>(new UserAdminEntityConfiguration());
         modelBuilder.ApplyConfiguration<UserAdminAuthEntity>(new UserAdminAuthEntityConfiguration());
     }

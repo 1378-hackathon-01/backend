@@ -35,8 +35,11 @@ public class ExceptionMiddleware(RequestDelegate next, IWebHostEnvironment envir
         if (exception is ArgumentException || exception is ThonArgumentException || exception is ThonApiBadRequestException)
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
 
-        else if (exception is ThonApiUnauthorizedException) 
+        else if (exception is ThonApiUnauthorizedException)
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+        else if (exception is ThonApiForbiddenException)
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
 
         else if (exception is ThonApiNotFoundException)
             context.Response.StatusCode = StatusCodes.Status404NotFound;

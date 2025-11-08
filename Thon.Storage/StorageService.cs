@@ -8,6 +8,8 @@ public class StorageService
 
     public UserAdminAuthStorage UserAdminAuths { get; }
 
+    public ApiTokenStorage ApiTokens { get; }
+
     public StorageService(IStorageConfiguration configuration)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configuration.ConnectionString);
@@ -15,5 +17,6 @@ public class StorageService
         var dbContextFactory = new DatabaseContextFactory(configuration.ConnectionString);
         UserAdminAuths = new UserAdminAuthStorage(dbContextFactory);
         UserAdmins = new UserAdminStorage(dbContextFactory);
+        ApiTokens = new ApiTokenStorage(dbContextFactory);
     }
 }
