@@ -14,7 +14,7 @@ public class UserAdminAuthService(StorageService storage)
     {
         ArgumentNullException.ThrowIfNull(userAdmin);
 
-        var auth = new UserAdminAuth(userId: userAdmin.Id)
+        var auth = new UserAdminAuth(user: userAdmin)
         {
             DeviceIpAddress = deviceIpAddress,
             DeviceUserAgent = deviceUserAgent,

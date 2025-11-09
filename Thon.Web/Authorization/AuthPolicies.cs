@@ -3,4 +3,6 @@
 public class AuthPolicies
 {
     public const string Admin = "a4e441de-78c3-4ad2-b2ed-c351968c2f94";
+
+    public const string Institution = "ea353e59-2e7c-45fd-896f-9c3f44cd7bcd";
 }

@@ -1,12 +1,12 @@
 ﻿namespace Thon.Core.Models;
 
 /// <summary>
-/// Авторизация администратора.
+/// Авторизация пользователя-сотрудника учебного заведения.
 /// </summary>
-public class UserAdminAuth : BaseModel
+public class UserInstitutionAuth : BaseModel
 {
     /// <summary>
-    /// ID администратора, которому принадлежит авторизация.
+    /// ID сотрудника учебного заведения, которому принадлежит авторизация.
     /// </summary>
     public Guid UserId { get; }
 
@@ -24,7 +24,7 @@ public class UserAdminAuth : BaseModel
     /// Создание новой авторизации пользователя.
     /// </summary>
     /// <param name="user">Пользователь.</param>
-    public UserAdminAuth(UserAdmin user)
+    public UserInstitutionAuth(UserInstitution user)
     {
         UserId = user.Id;
     }
@@ -33,7 +33,7 @@ public class UserAdminAuth : BaseModel
     /// Копироваие авторизации.
     /// </summary>
     /// <param name="model">Копируемая авторизация.</param>
-    public UserAdminAuth(UserAdminAuth model) : base(model)
+    public UserInstitutionAuth(UserAdminAuth model) : base(model)
     {
         UserId = model.UserId;
         DeviceUserAgent = model.DeviceUserAgent;
@@ -43,17 +43,17 @@ public class UserAdminAuth : BaseModel
     /// <summary>
     /// Восстановление авторизации.
     /// </summary>
-    public UserAdminAuth(
+    public UserInstitutionAuth(
         Guid id,
         Guid userId,
         string? deviceUserAgent,
         string? deviceIpAddress,
         DateTime createdAtUtc,
-        DateTime updatedAtUtc) 
+        DateTime updatedAtUtc)
         : base(
             id: id,
             createdAtUtc: createdAtUtc,
-            updatedAtUtc:updatedAtUtc)
+            updatedAtUtc: updatedAtUtc)
     {
         UserId = userId;
         DeviceUserAgent = deviceUserAgent;

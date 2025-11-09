@@ -27,6 +27,11 @@ builder
         AuthPolicies.Admin,
         policy => policy
             .RequireClaim(AuthTokenClaim.Role, AuthTokenRole.Admin)
+            .RequireClaim(AuthTokenClaim.SessionId))
+    .AddPolicy(
+        AuthPolicies.Institution,
+        policy => policy
+            .RequireClaim(AuthTokenClaim.Role, AuthTokenRole.Institution)
             .RequireClaim(AuthTokenClaim.SessionId));
 
 builder

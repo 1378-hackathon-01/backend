@@ -23,6 +23,12 @@ public static class ThonServices
 
         services.AddSingleton<UserAdminService>();
         services.AddSingleton<UserAdminAuthService>();
+
+        services.AddSingleton<InstitutionService>();
+
+        services.AddSingleton<UserInstitutionService>();
+        services.AddSingleton<UserInstitutionAuthService>();
+
         services.AddSingleton<ApiTokenService>();
 
         services.AddSingleton<IStartupTask, UserAdminStartupTask>();

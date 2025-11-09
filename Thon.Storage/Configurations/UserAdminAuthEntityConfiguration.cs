@@ -14,7 +14,7 @@ internal class UserAdminAuthEntityConfiguration : BaseModelEntityConfiguration<U
             .HasOne<UserAdminEntity>()
             .WithMany()
             .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder
             .HasIndex(x => x.UserId);

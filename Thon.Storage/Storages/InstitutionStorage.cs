@@ -4,45 +4,37 @@ using Thon.Storage.Entities;
 
 namespace Thon.Storage.Storages;
 
-public class UserAdminAuthStorage
+public class InstitutionStorage
 {
-    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly DatabaseContextFactory _dbContextFactory;
 
-    internal UserAdminAuthStorage(IDbContextFactory<DatabaseContext> dbContextFactory)
+    internal InstitutionStorage(DatabaseContextFactory dbContextFactory)
     {
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<IReadOnlyList<UserAdminAuth>> Get(
-        UserAdmin user,
-        CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Institution>> Get(CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(user);
-
         using var context = _dbContextFactory.CreateDbContext();
 
-        var entities = await context
-            .AdminUserAuths
+        var entities = await context.Institutions
             .AsNoTracking()
-            .Where(x => x.UserId == user.Id)
             .OrderByDescending(x => x.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
-        var models = entities
+        return entities
             .Select(x => x.GetModel())
             .ToList();
-
-        return models;
     }
 
-    public async Task<UserAdminAuth?> Get(
+    public async Task<Institution?> Get(
         Guid id,
         CancellationToken cancellationToken = default)
     {
         using var context = _dbContextFactory.CreateDbContext();
 
         var entity = await context
-            .AdminUserAuths
+            .Institutions
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
@@ -50,30 +42,30 @@ public class UserAdminAuthStorage
     }
 
     public async Task Delete(
-        UserAdminAuth auth,
+        Institution institution,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(auth);
+        ArgumentNullException.ThrowIfNull(institution);
 
         using var context = _dbContextFactory.CreateDbContext();
 
-        var entity = new UserAdminAuthEntity(auth);
-        context.AdminUserAuths.Attach(entity);
-        context.AdminUserAuths.Remove(entity);
+        var entity = new InstitutionEntity(institution);
+        context.Institutions.Attach(entity);
+        context.Institutions.Remove(entity);
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task Insert(
-        UserAdminAuth auth,
+        Institution institution,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(auth);
+        ArgumentNullException.ThrowIfNull(institution);
 
         using var context = _dbContextFactory.CreateDbContext();
 
-        var entity = new UserAdminAuthEntity(auth);
-        context.AdminUserAuths.Add(entity);
+        var entity = new InstitutionEntity(institution);
+        context.Institutions.Add(entity);
 
         await context.SaveChangesAsync(cancellationToken);
     }
