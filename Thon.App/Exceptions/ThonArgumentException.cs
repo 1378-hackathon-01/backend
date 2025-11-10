@@ -11,6 +11,18 @@ public class ThonArgumentException : ThonException
 
     public ThonArgumentException(string? message, Exception? innerException) : base(message, innerException) { }
 
+    public static void ThrowIfNegative(long value, string? message = null)
+    {
+        if (value < 0)
+            throw new ThonArgumentException(message);
+    }
+
+    public static void ThrowIfNegativeOrZero(long value, string? message = null)
+    {
+        if (value <= 0)
+            throw new ThonArgumentException(message);
+    }
+
     public static void ThrowIf(bool expression, string? message = null)
     {
         if (expression)

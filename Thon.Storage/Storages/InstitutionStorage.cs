@@ -19,7 +19,7 @@ public class InstitutionStorage
 
         var entities = await context.Institutions
             .AsNoTracking()
-            .OrderByDescending(x => x.CreatedAtUtc)
+            .OrderBy(x => x.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
         return entities

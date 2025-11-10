@@ -1,0 +1,217 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Thon.App.Services;
+using Thon.Web.Authorization;
+using Thon.Web.Entities.Api;
+using Thon.Web.Exceptions;
+
+namespace Thon.Web.Controllers.Api;
+
+[ApiController]
+[Authorize(Policy = AuthPolicies.Api)]
+[Route("students")]
+public class ApiStudentsController(
+    StudentService studentService, 
+    InstitutionService institutionService) 
+    : ControllerBase
+{
+    [HttpGet("{studentId}")]
+    public async Task<ApiStudent> Get(Guid studentId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student with that ID not found!");
+
+        var response = new ApiStudent(student);
+        return response;
+    }
+
+    [HttpGet("vk/{vkId}")]
+    public async Task<ApiStudentSearch> GetByVk(long vkId)
+    {
+        ThonApiBadRequestException.ThrowIfNegativeOrZero(vkId, "VK ID can't be negative or zero!");
+
+        var searchResult = await studentService.GetByVk(vkId);
+        ThonApiNotFoundException.ThrowIfNull(searchResult, "Student with that VK ID not found!");
+
+        return new ApiStudentSearch(searchResult);
+    }
+
+    [HttpGet("max/{maxId}")]
+    public async Task<ApiStudentSearch> GetByMax(long maxId)
+    {
+        ThonApiBadRequestException.ThrowIfNegativeOrZero(maxId, "MAX ID can't be negative or zero!");
+
+        var searchResult = await studentService.GetByMax(maxId);
+        ThonApiNotFoundException.ThrowIfNull(searchResult, "Student with that MAX ID not found!");
+
+        return new ApiStudentSearch(searchResult);
+    }
+
+    [HttpGet("telegram/{telegramId}")]
+    public async Task<ApiStudentSearch> GetByTelegram(long telegramId)
+    {
+        ThonApiBadRequestException.ThrowIfNegativeOrZero(telegramId, "Telegram ID can't be negative or zero!");
+
+        var searchResult = await studentService.GetByTelegram(telegramId);
+        ThonApiNotFoundException.ThrowIfNull(searchResult, "Student with that Telegram ID not found!");
+
+        return new ApiStudentSearch(searchResult);
+    }
+
+    [HttpPost()]
+    public async Task<ApiStudent> Create([FromBody] ApiStudentPost request)
+    {
+        ThonApiBadRequestException.ThrowIfNull(request, "Request can't be null!");
+
+        if (request.VkId is not null)
+        {
+            ThonApiBadRequestException.ThrowIfNegativeOrZero(request.VkId.Value, "VK ID can't be negative or zero!");
+
+            var conflictStudent = await studentService.GetByVk(request.VkId.Value);
+
+            if (conflictStudent is not null) 
+                throw new ThonApiConflictException("Student with that VK ID already exists!");
+        }
+
+        if (request.MaxId is not null)
+        {
+            ThonApiBadRequestException.ThrowIfNegativeOrZero(request.MaxId.Value, "MAX ID can't be negative or zero!");
+
+            var conflictStudent = await studentService.GetByMax(request.MaxId.Value);
+
+            if (conflictStudent is not null)
+                throw new ThonApiConflictException("Student with that MAX ID already exists!");
+        }
+
+        if (request.TelegramId is not null)
+        {
+            ThonApiBadRequestException.ThrowIfNegativeOrZero(request.TelegramId.Value, "Telegram ID can't be negative or zero!");
+
+            var conflictStudent = await studentService.GetByTelegram(request.TelegramId.Value);
+
+            if (conflictStudent is not null)
+                throw new ThonApiConflictException("Student with that Telegram ID already exists!");
+        }
+
+        if (request.FullName is not null)
+            ThonApiBadRequestException.ThrowIfNullOrWhiteSpace(request.FullName, "Full Name can be NULL but can't be empty!");
+
+        var student = await studentService.Create(
+            vkId: request.VkId,
+            maxId: request.MaxId,
+            telegramId: request.TelegramId,
+            fullName: request.FullName);
+
+        return new ApiStudent(student);
+    }
+
+    [HttpPatch("{studentId}")]
+    public async Task<ApiStudent> Update(Guid studentId, [FromBody] ApiStudentPatch request)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+
+        var studentVkId = student.VkId; 
+        var studentMaxId = student.MaxId;
+        var studentTelegramId = student.TelegramId;
+        var studentFullName = student.FullName;
+
+        if (request.VkId is not null)
+        {
+            ThonApiBadRequestException.ThrowIfNegative(request.VkId.Value, "VK ID can't be negative!");
+
+            var conflictStudent = await studentService.GetByVk(request.VkId.Value);
+
+            if (conflictStudent is not null && conflictStudent.Id != student.Id)
+                throw new ThonApiConflictException("Student with that VK ID already exists!");
+
+            studentVkId = request.VkId.Value;
+        }
+
+        if (request.MaxId is not null)
+        {
+            ThonApiBadRequestException.ThrowIfNegative(request.MaxId.Value, "MAX ID can't be negative!");
+
+            var conflictStudent = await studentService.GetByMax(request.MaxId.Value);
+
+            if (conflictStudent is not null && conflictStudent.Id != student.Id)
+                throw new ThonApiConflictException("Student with that MAX ID already exists!");
+
+            studentMaxId = request.MaxId.Value;
+        }
+
+        if (request.TelegramId is not null)
+        {
+            ThonApiBadRequestException.ThrowIfNegative(request.TelegramId.Value, "Telegram ID can't be negative!");
+
+            var conflictStudent = await studentService.GetByTelegram(request.TelegramId.Value);
+
+            if (conflictStudent is not null && conflictStudent.Id != student.Id)
+                throw new ThonApiConflictException("Student with that Telegram ID already exists!");
+            
+            studentTelegramId = request.TelegramId.Value;
+        }
+
+        if (request.FullName is not null)
+            studentFullName = request.FullName.Trim().Length == 0 ? null : request.FullName;
+
+        student = await studentService.Update(
+            student: student,
+            vkId: studentVkId,
+            maxId: studentMaxId,
+            telegramId: studentTelegramId,
+            fullName: studentFullName);
+
+        return new ApiStudent(student);
+    }
+
+    [HttpDelete("{studentId}")]
+    public async Task Delete(Guid studentId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student with that ID not found!");
+
+        await studentService.Delete(student);
+    }
+
+    [HttpGet("{studentId}/institution")]
+    public async Task<ApiInstitution> GetStudentInstitution(Guid studentId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+
+        if (student.InstitutionId is null)
+            throw new ThonApiNotFoundException("Student no attached to the institution!");
+
+        var institution = await institutionService.Get(student.InstitutionId.Value);
+        ThonApiNotFoundException.ThrowIfNull(institution, "Institution not found!");
+
+        return new ApiInstitution(institution);
+    }
+
+    [HttpPost("{studentId}/institution/{institutionId}")]
+    public async Task<ApiInstitution> AttachStudentToInstitution(Guid studentId, Guid institutionId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+
+        var institution = await institutionService.Get(institutionId);
+        ThonApiNotFoundException.ThrowIfNull(institution, "Institution not found!");
+
+        if (student.InstitutionId is not null && student.InstitutionId != institution.Id)
+            throw new ThonApiBadRequestException("Student already attached to the institution!");
+
+        await studentService.AttachToInstitution(student, institution);
+        return new ApiInstitution(institution);
+    }
+
+    [HttpDelete("{studentId}/institution")]
+    public async Task AttachStudentToInstitution(Guid studentId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+        ThonApiNotFoundException.ThrowIfNull(student.InstitutionId, "Institution already deattached!");
+
+        await studentService.DeattachInstitution(student);
+    }
+}

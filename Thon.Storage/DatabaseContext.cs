@@ -18,6 +18,8 @@ internal class DatabaseContext : DbContext
 
     public DbSet<UserInstitutionAuthEntity> InstitutionUserAuths => Set<UserInstitutionAuthEntity>();
 
+    public DbSet<StudentEntity> Students => Set<StudentEntity>();
+
     public DatabaseContext(DbContextOptions<DatabaseContext> options): base(options)
     {
         Database.EnsureCreated();
@@ -33,5 +35,7 @@ internal class DatabaseContext : DbContext
         modelBuilder.ApplyConfiguration<InstitutionEntity>(new InstitutionEntityConfiguration());
         modelBuilder.ApplyConfiguration<UserInstitutionEntity>(new UserInstitutionEntityConfiguration());
         modelBuilder.ApplyConfiguration<UserInstitutionAuthEntity>(new UserInstitutionAuthEntityConfiguration());
+
+        modelBuilder.ApplyConfiguration<StudentEntity>(new StudentEntityConfiguration());
     }
 }

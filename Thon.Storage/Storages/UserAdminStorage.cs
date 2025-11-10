@@ -25,7 +25,7 @@ public class UserAdminStorage
         var entities = await context
             .AdminUsers
             .AsNoTracking()
-            .OrderByDescending(x => x.CreatedAtUtc)
+            .OrderBy(x => x.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
         var models = entities

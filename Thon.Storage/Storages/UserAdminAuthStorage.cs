@@ -25,7 +25,7 @@ public class UserAdminAuthStorage
             .AdminUserAuths
             .AsNoTracking()
             .Where(x => x.UserId == user.Id)
-            .OrderByDescending(x => x.CreatedAtUtc)
+            .OrderBy(x => x.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
         var models = entities

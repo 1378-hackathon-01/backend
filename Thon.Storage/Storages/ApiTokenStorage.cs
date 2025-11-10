@@ -19,7 +19,7 @@ public class ApiTokenStorage
 
         var entities = await context.ApiTokens
             .AsNoTracking()
-            .OrderByDescending(x => x.CreatedAtUtc)
+            .OrderBy(x => x.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
         return entities

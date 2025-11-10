@@ -10,6 +10,18 @@ public class ThonApiBadRequestException : ThonApiException
 
     public ThonApiBadRequestException(string? message, Exception? innerException) : base(message, innerException) { }
 
+    public static void ThrowIfNegative(long value, string? message = null)
+    {
+        if (value < 0)
+            throw new ThonApiBadRequestException(message);
+    }
+
+    public static void ThrowIfNegativeOrZero(long value, string? message = null)
+    {
+        if (value <= 0)
+            throw new ThonApiBadRequestException(message);
+    }
+
     public static void ThrowIf(bool expression, string? message = null)
     {
         if (expression)

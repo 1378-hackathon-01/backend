@@ -44,7 +44,7 @@ public class ExceptionMiddleware(RequestDelegate next, IWebHostEnvironment envir
         else if (exception is ThonApiNotFoundException)
             context.Response.StatusCode = StatusCodes.Status404NotFound;
 
-        else if (exception is ThonConflictException)
+        else if (exception is ThonConflictException || exception is ThonApiConflictException)
             context.Response.StatusCode = StatusCodes.Status409Conflict;
 
         else

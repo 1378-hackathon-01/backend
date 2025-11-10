@@ -31,6 +31,8 @@ public static class ThonServices
 
         services.AddSingleton<ApiTokenService>();
 
+        services.AddSingleton<StudentService>();
+
         services.AddSingleton<IStartupTask, UserAdminStartupTask>();
         services.AddSingleton<IHostedService, HostedStartupTasksService>();
 

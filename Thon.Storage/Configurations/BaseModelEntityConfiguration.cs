@@ -13,10 +13,10 @@ internal class BaseModelEntityConfiguration<T> : IEntityTypeConfiguration<T> whe
 
         builder
             .HasIndex(x => x.CreatedAtUtc)
-            .IsDescending();
+            .IsDescending(false);
 
         builder
             .HasIndex(x => x.UpdatedAtUtc)
-            .IsDescending();
+            .IsDescending(false);
     }
 }
