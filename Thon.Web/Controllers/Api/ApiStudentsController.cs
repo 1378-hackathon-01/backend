@@ -125,7 +125,7 @@ public class ApiStudentsController(
             if (conflictStudent is not null && conflictStudent.Id != student.Id)
                 throw new ThonApiConflictException("Student with that VK ID already exists!");
 
-            studentVkId = request.VkId.Value;
+            studentVkId = request.VkId.Value != 0 ? request.VkId.Value : null;
         }
 
         if (request.MaxId is not null)
@@ -137,7 +137,7 @@ public class ApiStudentsController(
             if (conflictStudent is not null && conflictStudent.Id != student.Id)
                 throw new ThonApiConflictException("Student with that MAX ID already exists!");
 
-            studentMaxId = request.MaxId.Value;
+            studentMaxId = request.MaxId.Value != 0 ? request.MaxId.Value : null;
         }
 
         if (request.TelegramId is not null)
@@ -149,7 +149,7 @@ public class ApiStudentsController(
             if (conflictStudent is not null && conflictStudent.Id != student.Id)
                 throw new ThonApiConflictException("Student with that Telegram ID already exists!");
             
-            studentTelegramId = request.TelegramId.Value;
+            studentTelegramId = request.TelegramId.Value != 0 ? request.TelegramId.Value : null;
         }
 
         if (request.FullName is not null)
