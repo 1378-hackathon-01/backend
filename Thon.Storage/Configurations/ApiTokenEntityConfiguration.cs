@@ -8,5 +8,9 @@ internal class ApiTokenEntityConfiguration : BaseModelEntityConfiguration<ApiTok
     public new void Configure(EntityTypeBuilder<ApiTokenEntity> builder)
     {
         base.Configure(builder);
+
+        builder
+            .HasIndex(x => x.TokenHash)
+            .IsUnique();
     }
 }

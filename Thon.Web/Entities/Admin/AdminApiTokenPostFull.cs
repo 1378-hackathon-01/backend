@@ -4,5 +4,5 @@ namespace Thon.Web.Entities.Admin;
 
 public class AdminApiTokenPostFull(ApiTokenCreateResult createResult)
 {
-    public string Token { get; } = createResult.Token;
+    public string Token { get; } = createResult.TokenRaw;
 }

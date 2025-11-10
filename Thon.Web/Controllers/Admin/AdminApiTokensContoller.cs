@@ -5,6 +5,8 @@ using Thon.App.Services;
 using Thon.Web.Exceptions;
 using Thon.Web.Authorization;
 using Thon.Web.Entities.Admin;
+using Thon.Web.Services;
+using Thon.App.Helpers;
 
 namespace Thon.Web.Controllers.Admin;
 
@@ -14,12 +16,13 @@ namespace Thon.Web.Controllers.Admin;
 public class AdminApiTokensContoller(
     ApiTokenService apiTokenService,
     UserAdminService userAdminService,
-    UserAdminAuthService userAdminAuthService)
+    UserAdminAuthService userAdminAuthService,
+    ApiTokenCache tokenCache)
     : BaseAdminController(
         userAdminService,
         userAdminAuthService)
 {
-    [HttpGet("")]
+    [HttpGet()]
     public async Task<IReadOnlyList<AdminApiTokenFull>> Get()
     {
         var user = await GetUser();
@@ -34,13 +37,15 @@ public class AdminApiTokensContoller(
         return response;
     }
 
-    [HttpPost("")]
+    [HttpPost()]
     public async Task<AdminApiTokenPostFull> Create()
     {
         var user = await GetUser();
         ThonApiForbiddenException.ThrowIfLess(user.AccessApiTokens, AccessLevel.Write);
 
         var tokenCreationResult = await apiTokenService.Create();
+        tokenCache.Set(tokenCreationResult.Token.TokenHash);
+        
         return new AdminApiTokenPostFull(tokenCreationResult);
     }
 
@@ -54,6 +59,7 @@ public class AdminApiTokensContoller(
         var token = await apiTokenService.Get(id: tokenId);
         ThonApiNotFoundException.ThrowIfNull(token);
 
+        tokenCache.Remove(token.TokenHash);
         await apiTokenService.Delete(token);
     }
 }

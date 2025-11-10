@@ -28,6 +28,20 @@ public class ApiTokenService(
         return token;
     }
 
+    public async Task<ApiToken?> Get(
+        string tokenHash, 
+        CancellationToken cancellationToken = default)
+    {
+        ThonArgumentException.ThrowIfNullOrWhiteSpace(tokenHash);
+
+        var token = await storage.ApiTokens
+            .Get(
+                tokenHash: tokenHash, 
+                cancellationToken: cancellationToken);
+
+        return token;
+    }
+
     public async Task<ApiTokenCreateResult> Create(CancellationToken cancellationToken = default)
     {
         var tokenRawPart1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -42,7 +56,9 @@ public class ApiTokenService(
                 model: token, 
                 cancellationToken: cancellationToken);
 
-        return new ApiTokenCreateResult(token: tokenRaw);
+        return new ApiTokenCreateResult(
+            tokenRaw: tokenRaw,
+            token: token);
     }
 
     public async Task Delete(

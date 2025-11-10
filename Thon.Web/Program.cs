@@ -1,13 +1,14 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Thon.App;
 using Thon.Web.Authorization;
 using Thon.Web.Conventions;
+using Thon.Web.Converters;
 using Thon.Web.Helpers;
 using Thon.Web.Middlewares;
-using Thon.Web.Converters;
+using Thon.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +33,13 @@ builder
         AuthPolicies.Institution,
         policy => policy
             .RequireClaim(AuthTokenClaim.Role, AuthTokenRole.Institution)
-            .RequireClaim(AuthTokenClaim.SessionId));
+            .RequireClaim(AuthTokenClaim.SessionId))
+    .AddPolicy(
+        AuthPolicies.Api,
+        policy => policy
+            .RequireApiToken());
+    
+            
 
 builder
     .Services
@@ -68,6 +75,8 @@ builder
         options.JsonSerializerOptions.Converters.Add(new AdminAccessLevelConverter());
 
     });
+
+builder.Services.AddSingleton<ApiTokenCache>();
 
 builder.Services.AddControllers();
 

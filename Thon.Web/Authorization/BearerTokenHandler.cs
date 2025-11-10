@@ -17,7 +17,9 @@ public class BearerTokenHandler : TokenHandler
             // его использовать нельзя, потому что он сломан.
             // Судя по всему, он зависит от устаревшей версии библиотеки System.Text, которая не позволяет корректно разложить токен
             // на составные части header.payload.signature, из-за чего валидация корректного токена проваливается.
+
             _tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+
             if (validatedToken is not JwtSecurityToken jwtSecurityToken)
                 return Task.FromResult(new TokenValidationResult { IsValid = false });
 

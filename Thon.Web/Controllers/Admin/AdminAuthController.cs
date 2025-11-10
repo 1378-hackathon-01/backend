@@ -56,7 +56,7 @@ public class AdminAuthController(
         return new AdminAuthBrief(token);
     }
 
-    [HttpGet("")]
+    [HttpGet()]
     public async Task<AdminAuthFull> Get()
     {
         var session = await GetSession();

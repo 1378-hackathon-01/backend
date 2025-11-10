@@ -42,6 +42,23 @@ public class ApiTokenStorage
         return entity?.GetModel();
     }
 
+    public async Task<ApiToken?> Get(
+        string tokenHash,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tokenHash);
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var entity = await context.ApiTokens
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                x => x.TokenHash == tokenHash,
+                cancellationToken);
+
+        return entity?.GetModel();
+    }
+
     public async Task Insert(
         ApiToken model,
         CancellationToken cancellationToken = default)

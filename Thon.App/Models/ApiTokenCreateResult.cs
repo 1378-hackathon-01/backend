@@ -1,6 +1,10 @@
-﻿namespace Thon.App.Models;
+﻿using Thon.Core.Models;
 
-public class ApiTokenCreateResult(string token)
+namespace Thon.App.Models;
+
+public class ApiTokenCreateResult(string tokenRaw, ApiToken token)
 {
-    public string Token { get; } = token;
+    public string TokenRaw { get; } = tokenRaw;
+
+    public ApiToken Token { get; } = token;
 }
