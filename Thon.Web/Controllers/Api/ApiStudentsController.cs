@@ -120,36 +120,51 @@ public class ApiStudentsController(
         {
             ThonApiBadRequestException.ThrowIfNegative(request.VkId.Value, "VK ID can't be negative!");
 
-            var conflictStudent = await studentService.GetByVk(request.VkId.Value);
+            if (request.VkId.Value != 0)
+            {
+                var conflictStudent = await studentService.GetByVk(request.VkId.Value);
 
-            if (conflictStudent is not null && conflictStudent.Id != student.Id)
-                throw new ThonApiConflictException("Student with that VK ID already exists!");
+                if (conflictStudent is not null && conflictStudent.Id != student.Id)
+                    throw new ThonApiConflictException("Student with that VK ID already exists!");
 
-            studentVkId = request.VkId.Value != 0 ? request.VkId.Value : null;
+                studentVkId = request.VkId;
+            }
+            else
+                studentVkId = null;
         }
 
         if (request.MaxId is not null)
         {
             ThonApiBadRequestException.ThrowIfNegative(request.MaxId.Value, "MAX ID can't be negative!");
 
-            var conflictStudent = await studentService.GetByMax(request.MaxId.Value);
+            if (request.MaxId.Value != 0)
+            {
+                var conflictStudent = await studentService.GetByMax(request.MaxId.Value);
 
-            if (conflictStudent is not null && conflictStudent.Id != student.Id)
-                throw new ThonApiConflictException("Student with that MAX ID already exists!");
+                if (conflictStudent is not null && conflictStudent.Id != student.Id)
+                    throw new ThonApiConflictException("Student with that MAX ID already exists!");
 
-            studentMaxId = request.MaxId.Value != 0 ? request.MaxId.Value : null;
+                studentMaxId = request.MaxId;
+            }
+            else
+                studentMaxId = null;
         }
 
         if (request.TelegramId is not null)
         {
             ThonApiBadRequestException.ThrowIfNegative(request.TelegramId.Value, "Telegram ID can't be negative!");
 
-            var conflictStudent = await studentService.GetByTelegram(request.TelegramId.Value);
+            if (request.TelegramId.Value != 0)
+            {
+                var conflictStudent = await studentService.GetByTelegram(request.TelegramId.Value);
 
-            if (conflictStudent is not null && conflictStudent.Id != student.Id)
-                throw new ThonApiConflictException("Student with that Telegram ID already exists!");
-            
-            studentTelegramId = request.TelegramId.Value != 0 ? request.TelegramId.Value : null;
+                if (conflictStudent is not null && conflictStudent.Id != student.Id)
+                    throw new ThonApiConflictException("Student with that Telegram ID already exists!");
+
+                studentTelegramId = request.TelegramId;
+            }
+            else
+                studentTelegramId = null;
         }
 
         if (request.FullName is not null)
