@@ -27,6 +27,24 @@ public class UserInstitutionStorage
         return entity?.GetModel();
     }
 
+    public async Task<UserInstitution?> Get(
+        string login,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(login);
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var entity = await context
+            .InstitutionUsers
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Login == login, cancellationToken);
+
+        var model = entity?.GetModel();
+
+        return model;
+    }
+
     public async Task Insert(
         UserInstitution user,
         CancellationToken cancellationToken = default)

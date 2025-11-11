@@ -12,7 +12,8 @@ namespace Thon.Web.Controllers.Api;
 [Route("students")]
 public class ApiStudentsController(
     StudentService studentService, 
-    InstitutionService institutionService) 
+    InstitutionService institutionService,
+    FacultyService facultyService) 
     : ControllerBase
 {
     [HttpGet("{studentId}")]
@@ -195,11 +196,10 @@ public class ApiStudentsController(
         var student = await studentService.Get(studentId);
         ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
 
-        if (student.InstitutionId is null)
-            throw new ThonApiNotFoundException("Student no attached to the institution!");
+        var institution = await studentService.GetInstitution(student);
 
-        var institution = await institutionService.Get(student.InstitutionId.Value);
-        ThonApiNotFoundException.ThrowIfNull(institution, "Institution not found!");
+        if (institution is null)
+            throw new ThonApiNotFoundException("Student no attached to the institution!");
 
         return new ApiInstitution(institution);
     }
@@ -213,7 +213,9 @@ public class ApiStudentsController(
         var institution = await institutionService.Get(institutionId);
         ThonApiNotFoundException.ThrowIfNull(institution, "Institution not found!");
 
-        if (student.InstitutionId is not null && student.InstitutionId != institution.Id)
+        var studentInstitution = await studentService.GetInstitution(student);
+
+        if (studentInstitution is not null)
             throw new ThonApiBadRequestException("Student already attached to the institution!");
 
         await studentService.AttachToInstitution(student, institution);
@@ -221,12 +223,60 @@ public class ApiStudentsController(
     }
 
     [HttpDelete("{studentId}/institution")]
-    public async Task AttachStudentToInstitution(Guid studentId)
+    public async Task DeattachStudentFromInstitution(Guid studentId)
     {
         var student = await studentService.Get(studentId);
         ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
-        ThonApiNotFoundException.ThrowIfNull(student.InstitutionId, "Institution already deattached!");
 
-        await studentService.DeattachInstitution(student);
+        await studentService.DeattachFromInstitution(student);
+    }
+
+    [HttpGet("{studentId}/faculty")]
+    public async Task<ApiFaculty> GetStudentFaculty(Guid studentId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+
+        var faculty = await studentService.GetFaculty(student);
+
+        if (faculty is null)
+            throw new ThonApiNotFoundException("Student no attached to the faculty!");
+
+        return new ApiFaculty(faculty);
+    }
+
+    [HttpPost("{studentId}/faculty/{facultyId}")]
+    public async Task<ApiFaculty> AttachStudentToFaculty(Guid studentId, Guid facultyId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+
+        var studentFaculty = await studentService.GetFaculty(student);
+
+        if (studentFaculty is not null)
+            throw new ThonApiBadRequestException("Student already attached to the faculty!");
+
+        var studentInstitution = await studentService.GetInstitution(student);
+
+        if (studentInstitution is null)
+            throw new ThonApiBadRequestException("Student not attached to the institution!");
+
+        var faculty = await facultyService.Get(facultyId);
+        ThonApiNotFoundException.ThrowIfNull(faculty, "Faculty not found!");
+
+        if (studentInstitution.Id != faculty.InstitutionId)
+            throw new ThonApiBadRequestException("Invalid faculty for that institution!");
+
+        await studentService.AttachToFaculty(student, faculty);
+        return new ApiFaculty(faculty);
+    }
+
+    [HttpDelete("{studentId}/faculty")]
+    public async Task DeattachStudentFromFaculty(Guid studentId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+
+        await studentService.DeattachFromFaculty(student);
     }
 }

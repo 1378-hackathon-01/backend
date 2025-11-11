@@ -19,6 +19,54 @@ public class StudentService(StorageService storage)
         return student;
     }
 
+    public async Task<Institution?> GetInstitution(
+        Student student,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(student);
+
+        var attachments = await storage
+            .Students
+            .GetAttachments(
+                student: student,
+                cancellationToken: cancellationToken);
+
+        if (attachments.Institution is null)
+            return null;
+
+        var institution = await storage
+            .Institutions
+            .Get(
+                id: attachments.Institution.InstitutionId,
+                cancellationToken: cancellationToken);
+
+        return institution;
+    }
+
+    public async Task<Faculty?> GetFaculty(
+        Student student,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(student);
+
+        var attachments = await storage
+            .Students
+            .GetAttachments(
+                student: student,
+                cancellationToken: cancellationToken);
+
+        if (attachments.Faculty is null)
+            return null;
+
+        var faculty = await storage
+            .Faculties
+            .Get(
+                id: attachments.Faculty.FacultyId,
+                cancellationToken: cancellationToken);
+
+        return faculty;
+    }
+
     public async Task<StudentSearchResult?> GetByVk(
         long vkId,
         CancellationToken cancellationToken = default)
@@ -145,6 +193,7 @@ public class StudentService(StorageService storage)
         CancellationToken cancellationToken = default)
     {
         ThonArgumentException.ThrowIfNull(student);
+
         await storage.Students.Delete(student, cancellationToken);
     }
 
@@ -156,24 +205,52 @@ public class StudentService(StorageService storage)
         ThonArgumentException.ThrowIfNull(student);
         ThonArgumentException.ThrowIfNull(institution);
 
-        if (student.InstitutionId == institution.Id)
-            return;
+        var attachments = await storage.Students.GetAttachments(student, cancellationToken);
 
-        if (student.InstitutionId is not null)
+        if (attachments.Institution is not null)
             throw new ThonConflictException("User already attached to the institution, please deattach firstly!");
 
-        student = new Student(student) { InstitutionId = institution.Id };
-        await storage.Students.Update(student, cancellationToken);
+        await storage.Students.Attach(student, institution, cancellationToken);
     }
 
-    public async Task DeattachInstitution(
+    public async Task AttachToFaculty(
+        Student student,
+        Faculty faculty,
+        CancellationToken cancellationToken = default)
+    {
+        ThonArgumentException.ThrowIfNull(student);
+        ThonArgumentException.ThrowIfNull(faculty);
+
+        var attachments = await storage.Students.GetAttachments(student, cancellationToken);
+
+        if (attachments.Faculty is not null)
+            throw new ThonConflictException("User already attached to the institution, please deattach firstly!");
+
+        if (attachments.Institution is null)
+            throw new ThonArgumentException("Attach user to the institution firstly!");
+
+        if (faculty.InstitutionId != attachments.Institution.InstitutionId)
+            throw new ThonArgumentException("Invalid faculty for that institution!");
+
+        await storage.Students.Attach(attachments.Institution, faculty, cancellationToken);
+    }
+
+    public async Task DeattachFromInstitution(
         Student student,
         CancellationToken cancellationToken = default)
     {
         ThonArgumentException.ThrowIfNull(student);
 
-        student = new Student(student) { InstitutionId = null };
-        await storage.Students.Update(student, cancellationToken);
+        await storage.Students.DeattachFromInstitution(student, cancellationToken);
+    }
+
+    public async Task DeattachFromFaculty(
+        Student student,
+        CancellationToken cancellationToken = default)
+    {
+        ThonArgumentException.ThrowIfNull(student);
+
+        await storage.Students.DeattachFromFaculty(student, cancellationToken);
     }
 
     private async Task ValidateVkId(long vkId, Student? student = null, CancellationToken cancellationToken = default)

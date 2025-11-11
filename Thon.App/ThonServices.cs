@@ -25,6 +25,7 @@ public static class ThonServices
         services.AddSingleton<UserAdminAuthService>();
 
         services.AddSingleton<InstitutionService>();
+        services.AddSingleton<FacultyService>();
 
         services.AddSingleton<UserInstitutionService>();
         services.AddSingleton<UserInstitutionAuthService>();

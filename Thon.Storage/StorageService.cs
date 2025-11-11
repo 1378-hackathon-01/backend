@@ -18,6 +18,8 @@ public class StorageService
 
     public StudentStorage Students { get; }
 
+    public FacultyStorage Faculties { get; }
+
     public StorageService(IStorageConfiguration configuration)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configuration.ConnectionString);
@@ -29,6 +31,7 @@ public class StorageService
         Institutions = new InstitutionStorage(dbContextFactory);
         UserAdmins = new UserAdminStorage(dbContextFactory);
         ApiTokens = new ApiTokenStorage(dbContextFactory);
+        Faculties = new FacultyStorage(dbContextFactory);
         Students = new StudentStorage(dbContextFactory);
     }
 }

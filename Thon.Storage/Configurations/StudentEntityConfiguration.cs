@@ -11,15 +11,6 @@ internal class StudentEntityConfiguration : BaseModelEntityConfiguration<Student
         base.Configure(builder);
 
         builder
-            .HasOne<InstitutionEntity>()
-            .WithMany()
-            .HasForeignKey(x => x.InstitutionId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        builder
-            .HasIndex(x => new { x.InstitutionId, x.CreatedAtUtc });
-
-        builder
             .HasIndex(x => new { x.VkId, x.CreatedAtUtc });
 
         builder

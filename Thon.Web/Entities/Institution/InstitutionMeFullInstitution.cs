@@ -1,8 +1,8 @@
 ﻿using InstitutionModel = Thon.Core.Models.Institution;
 
-namespace Thon.Web.Entities.Api;
+namespace Thon.Web.Entities.Institution;
 
-public class ApiInstitution(InstitutionModel institution)
+public class InstitutionMeFullInstitution(InstitutionModel institution)
 {
     public Guid Id { get; } = institution.Id;
 

@@ -6,8 +6,6 @@ internal class StudentEntity : BaseModelEntity, IEntity<Student>
 {
     public string? FullName { get; set; }
 
-    public Guid? InstitutionId { get; set; }
-
     public long? MaxId { get; set; }
 
     public long? TelegramId { get; set; }
@@ -16,7 +14,6 @@ internal class StudentEntity : BaseModelEntity, IEntity<Student>
 
     public StudentEntity(Student model) : base(model)
     {
-        InstitutionId = model.InstitutionId;
         VkId = model.VkId;
         MaxId = model.MaxId;
         TelegramId = model.TelegramId;
@@ -25,7 +22,6 @@ internal class StudentEntity : BaseModelEntity, IEntity<Student>
 
     public StudentEntity(
         Guid id,
-        Guid? institutionId,
         long? vkId,
         long? maxId,
         long? telegramId,
@@ -37,7 +33,6 @@ internal class StudentEntity : BaseModelEntity, IEntity<Student>
             createdAtUtc: createdAtUtc,
             updatedAtUtc: updatedAtUtc)
     {
-        InstitutionId = institutionId;
         VkId = vkId;
         MaxId = maxId;
         TelegramId = telegramId;
@@ -48,7 +43,6 @@ internal class StudentEntity : BaseModelEntity, IEntity<Student>
     {
         return new Student(
             id: Id,
-            institutionId: InstitutionId,
             vkId: VkId,
             maxId: MaxId,
             telegramId: TelegramId,

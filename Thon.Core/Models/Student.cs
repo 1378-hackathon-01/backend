@@ -11,11 +11,6 @@ public class Student : BaseModel
     public string? FullName { get; init; }
 
     /// <summary>
-    /// ID учебного заведения, к которому привязан студент.
-    /// </summary>
-    public Guid? InstitutionId { get; init; }
-
-    /// <summary>
     /// ID студента в системе мессенджера MAX.
     /// </summary>
     public long? MaxId { get; init; }
@@ -34,7 +29,6 @@ public class Student : BaseModel
 
     public Student(Student model) : base(model)
     {
-        InstitutionId = model.InstitutionId;
         VkId = model.VkId;
         MaxId = model.MaxId;
         TelegramId = model.TelegramId;
@@ -43,7 +37,6 @@ public class Student : BaseModel
 
     public Student(
         Guid id,
-        Guid? institutionId,
         long? vkId,
         long? maxId,
         long? telegramId,
@@ -55,7 +48,6 @@ public class Student : BaseModel
             createdAtUtc: createdAtUtc,
             updatedAtUtc:updatedAtUtc)
     {
-        InstitutionId = institutionId;
         VkId = vkId;
         MaxId = maxId;
         TelegramId = telegramId;
