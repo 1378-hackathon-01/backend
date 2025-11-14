@@ -1,12 +1,12 @@
 ﻿namespace Thon.Core.Models;
 
-public class StudentInstitution : BaseModel
+public class StudentRequestInstitution : BaseModel
 {
     public Guid StudentId { get; }
 
     public Guid InstitutionId { get; }
 
-    public StudentInstitution(
+    public StudentRequestInstitution(
         Student student, 
         Institution institution)
     {
@@ -14,13 +14,13 @@ public class StudentInstitution : BaseModel
         InstitutionId = institution.Id;
     }
 
-    public StudentInstitution(StudentInstitution model) : base(model)
+    public StudentRequestInstitution(StudentRequestInstitution model) : base(model)
     {
         StudentId = model.StudentId;
         InstitutionId = model.InstitutionId;
     }
 
-    public StudentInstitution(
+    public StudentRequestInstitution(
         Guid id,
         Guid studentId,
         Guid institutionId,

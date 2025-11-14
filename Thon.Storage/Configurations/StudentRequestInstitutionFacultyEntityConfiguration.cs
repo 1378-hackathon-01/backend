@@ -4,20 +4,20 @@ using Thon.Storage.Entities;
 
 namespace Thon.Storage.Configurations;
 
-internal class StudentInstitutionFacultyEntityConfiguration : BaseModelEntityConfiguration<StudentInstitutionFacultyEntity>
+internal class StudentRequestInstitutionFacultyEntityConfiguration : BaseModelEntityConfiguration<StudentRequestInstitutionFacultyEntity>, IEntityTypeConfiguration<StudentRequestInstitutionFacultyEntity>
 {
-    public new void Configure(EntityTypeBuilder<StudentInstitutionFacultyEntity> builder)
+    public new void Configure(EntityTypeBuilder<StudentRequestInstitutionFacultyEntity> builder)
     {
         base.Configure(builder);
 
         builder
-            .HasOne<StudentInstitutionEntity>()
+            .HasOne<StudentRequestInstitutionEntity>()
             .WithMany()
-            .HasForeignKey(x => x.StudentInstitutionId)
+            .HasForeignKey(x => x.StudentRequestInstitutionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder
-            .HasIndex(x => x.StudentInstitutionId);
+            .HasIndex(x => x.StudentRequestInstitutionId);
 
         builder
             .HasOne<FacultyEntity>()

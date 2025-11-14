@@ -20,11 +20,17 @@ internal class DatabaseContext : DbContext
 
     public DbSet<FacultyEntity> Faculties => Set<FacultyEntity>();
 
+    public DbSet<GroupEntity> Groups => Set<GroupEntity>();
+
     public DbSet<StudentEntity> Students => Set<StudentEntity>();
 
-    public DbSet<StudentInstitutionEntity> StudentInstitutions => Set<StudentInstitutionEntity>();
+    public DbSet<StudentApprovedEntity> StudentsApproved => Set<StudentApprovedEntity>();
 
-    public DbSet<StudentInstitutionFacultyEntity> StudentInstitutionsFaculties => Set<StudentInstitutionFacultyEntity>();
+    public DbSet<StudentRequestInstitutionEntity> StudentRequestInstitutions => Set<StudentRequestInstitutionEntity>();
+
+    public DbSet<StudentRequestInstitutionFacultyEntity> StudentRequestInstitutionsFaculties => Set<StudentRequestInstitutionFacultyEntity>();
+
+    public DbSet<StudentRequestInstitutionFacultyGroupEntity> StudentRequestInstitutionFacultyGroups => Set<StudentRequestInstitutionFacultyGroupEntity>();
 
     public DatabaseContext(DbContextOptions<DatabaseContext> options): base(options)
     {
@@ -42,9 +48,12 @@ internal class DatabaseContext : DbContext
         modelBuilder.ApplyConfiguration<UserInstitutionEntity>(new UserInstitutionEntityConfiguration());
         modelBuilder.ApplyConfiguration<UserInstitutionAuthEntity>(new UserInstitutionAuthEntityConfiguration());
         modelBuilder.ApplyConfiguration<FacultyEntity>(new FacultyEntityConfiguration());
+        modelBuilder.ApplyConfiguration<GroupEntity>(new GroupEntityConfiguration());
 
         modelBuilder.ApplyConfiguration<StudentEntity>(new StudentEntityConfiguration());
-        modelBuilder.ApplyConfiguration<StudentInstitutionEntity>(new StudentInstitutionEntityConfiguration());
-        modelBuilder.ApplyConfiguration<StudentInstitutionFacultyEntity>(new StudentInstitutionFacultyEntityConfiguration());
+        modelBuilder.ApplyConfiguration<StudentRequestInstitutionEntity>(new StudentRequestInstitutionEntityConfiguration());
+        modelBuilder.ApplyConfiguration<StudentRequestInstitutionFacultyEntity>(new StudentRequestInstitutionFacultyEntityConfiguration());
+        modelBuilder.ApplyConfiguration<StudentRequestInstitutionFacultyGroupEntity>(new StudentRequestInstitutionFacultyGroupEntityConfiguration());
+        modelBuilder.ApplyConfiguration<StudentApprovedEntity>(new StudentApprovedEntityConfiguration());
     }
 }

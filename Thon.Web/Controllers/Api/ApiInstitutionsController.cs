@@ -12,11 +12,12 @@ namespace Thon.Web.Controllers.Api;
 [Route("institutions")]
 public class ApiInstitutionsController(
     InstitutionService institutionService, 
-    FacultyService facultyService) 
+    FacultyService facultyService,
+    GroupService groupService) 
     : ControllerBase
 {
     [HttpGet()]
-    public async Task<IReadOnlyList<ApiInstitution>> GetAll()
+    public async Task<IReadOnlyList<ApiInstitution>> GetAllInstitutions()
     {
         var institutions = await institutionService.Get();
 
@@ -28,7 +29,7 @@ public class ApiInstitutionsController(
     }
 
     [HttpGet("{institutionId}/faculties")]
-    public async Task<IReadOnlyList<ApiFaculty>> GetAll(Guid institutionId)
+    public async Task<IReadOnlyList<ApiFaculty>> GetAllInstitutionFaculties(Guid institutionId)
     {
         var institution = await institutionService.Get(institutionId);
         ThonApiNotFoundException.ThrowIfNull(institution, "Institution not found!");
@@ -37,6 +38,25 @@ public class ApiInstitutionsController(
 
         return faculties
             .Select(x => new ApiFaculty(x))
+            .ToList();
+    }
+
+    [HttpGet("{institutionId}/faculties/{facultyId}/groups")]
+    public async Task<IReadOnlyList<ApiGroup>> GetAllFacultyGroups(Guid institutionId, Guid facultyId)
+    {
+        var institution = await institutionService.Get(institutionId);
+        ThonApiNotFoundException.ThrowIfNull(institution, "Institution not found!");
+
+        var faculty = await facultyService.Get(facultyId);
+        ThonApiNotFoundException.ThrowIfNull(faculty, "Faculty not found!");
+
+        if (institution.Id != faculty.InstitutionId)
+            throw new ThonApiNotFoundException("Faculty not found in institution!");
+
+        var groups = await groupService.Get(faculty);
+
+        return groups
+            .Select(x => new ApiGroup(x))
             .ToList();
     }
 }

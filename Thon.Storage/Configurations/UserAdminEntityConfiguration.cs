@@ -9,7 +9,7 @@ using Thon.Storage.Entities;
 
 namespace Thon.Storage.Configurations;
 
-internal class UserAdminEntityConfiguration : BaseModelEntityConfiguration<UserAdminEntity>
+internal class UserAdminEntityConfiguration : BaseModelEntityConfiguration<UserAdminEntity>, IEntityTypeConfiguration<UserAdminEntity>
 {
     public new void Configure(EntityTypeBuilder<UserAdminEntity> builder)
     {

@@ -4,7 +4,7 @@ using Thon.Storage.Entities;
 
 namespace Thon.Storage.Configurations;
 
-internal class BaseInstitutionModelEntityConfiguration<T> : BaseModelEntityConfiguration<T> where T : BaseInstitutionModelEntity
+internal class BaseInstitutionModelEntityConfiguration<T> : BaseModelEntityConfiguration<T>, IEntityTypeConfiguration<T> where T : BaseInstitutionModelEntity
 {
     public new void Configure(EntityTypeBuilder<T> builder)
     {

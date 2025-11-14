@@ -116,7 +116,7 @@ public class StudentStorage
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeattachFromInstitution(
+    public async Task Deattach(
         Student student,
         CancellationToken cancellationToken = default)
     {
@@ -124,49 +124,27 @@ public class StudentStorage
 
         using var context = _dbContextFactory.CreateDbContext();
 
-        var studentInstitution = await context
-            .StudentInstitutions
-            .AsTracking()
+        var studentApproved = await context
+            .StudentsApproved
+            .Where(x => x.StudentId == student.Id)
+            .ToArrayAsync(cancellationToken);
+
+        context.StudentsApproved.RemoveRange(studentApproved);
+
+        var studentInstitutions = await context
+            .StudentRequestInstitutions
+            .AsNoTracking()
             .Where(x => x.StudentId == student.Id)
             .ToListAsync(cancellationToken);
 
         context
-            .StudentInstitutions
-            .RemoveRange(studentInstitution);
+            .StudentRequestInstitutions
+            .RemoveRange(studentInstitutions);
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeattachFromFaculty(
-        Student student,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(student);
-
-        using var context = _dbContextFactory.CreateDbContext();
-
-        var studentInstitution = await context
-            .StudentInstitutions
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.StudentId == student.Id, cancellationToken);
-
-        if (studentInstitution is null)
-            return;
-
-        var studentInstitutionFaculties = await context
-            .StudentInstitutionsFaculties
-            .AsTracking()
-            .Where(x => x.StudentInstitutionId == studentInstitution.Id)
-            .ToListAsync(cancellationToken);
-
-        context
-            .StudentInstitutionsFaculties
-            .RemoveRange(studentInstitutionFaculties);
-
-        await context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<StudentAttachments> GetAttachments(
+    public async Task<StudentAttachRequest> GetAttachRequest(
         Student student, 
         CancellationToken cancellationToken = default)
     {
@@ -175,31 +153,46 @@ public class StudentStorage
         using var context = _dbContextFactory.CreateDbContext();
 
         var studentInstitution = await context
-            .StudentInstitutions
+            .StudentRequestInstitutions
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.StudentId == student.Id, cancellationToken);
 
         if (studentInstitution is not null)
         {
             var studentInstitutionFaculty = await context
-                .StudentInstitutionsFaculties
+                .StudentRequestInstitutionsFaculties
                 .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.StudentInstitutionId == studentInstitution.Id, cancellationToken);
+                .SingleOrDefaultAsync(x => x.StudentRequestInstitutionId == studentInstitution.Id, cancellationToken);
 
-            return new StudentAttachments
+            if (studentInstitutionFaculty is not null)
+            {
+                var studentInstitutionFacultyGroup = await context
+                    .StudentRequestInstitutionFacultyGroups
+                    .AsNoTracking()
+                    .SingleOrDefaultAsync(x => x.StudentRequestInstitutionFacultyId == studentInstitutionFaculty.Id, cancellationToken);
+
+                return new StudentAttachRequest
+                {
+                    Institution = studentInstitution.GetModel(),
+                    Faculty = studentInstitutionFaculty.GetModel(),
+                    Group = studentInstitutionFacultyGroup?.GetModel(),
+                };
+            }
+
+            return new StudentAttachRequest
             {
                 Institution = studentInstitution.GetModel(),
                 Faculty = studentInstitutionFaculty?.GetModel(),
             };
         }
 
-        return new StudentAttachments
+        return new StudentAttachRequest
         {
             Institution = studentInstitution?.GetModel()
         };
     }
 
-    public async Task<StudentInstitution> Attach(
+    public async Task<StudentRequestInstitution> Attach(
         Student student, 
         Institution institution,
         CancellationToken cancellationToken = default)
@@ -210,26 +203,26 @@ public class StudentStorage
         using var context = _dbContextFactory.CreateDbContext();
 
         var studentInstitutions = await context
-            .StudentInstitutions
+            .StudentRequestInstitutions
             .AsTracking()
             .Where(x => x.StudentId == student.Id)
             .ToListAsync(cancellationToken);
 
         context
-            .StudentInstitutions
+            .StudentRequestInstitutions
             .RemoveRange(studentInstitutions);
 
-        var model = new StudentInstitution(student, institution);
-        var entity = new StudentInstitutionEntity(model);
-        context.StudentInstitutions.Add(entity);
+        var model = new StudentRequestInstitution(student, institution);
+        var entity = new StudentRequestInstitutionEntity(model);
+        context.StudentRequestInstitutions.Add(entity);
 
         await context.SaveChangesAsync(cancellationToken);
 
         return model;
     }
 
-    public async Task<StudentInstitutionFaculty> Attach(
-        StudentInstitution studentInstitution,
+    public async Task<StudentRequestInstitutionFaculty> Attach(
+        StudentRequestInstitution studentInstitution,
         Faculty faculty,
         CancellationToken cancellationToken = default)
     {
@@ -242,18 +235,52 @@ public class StudentStorage
         using var context = _dbContextFactory.CreateDbContext();
 
         var studentInstitutionFaculties = await context
-            .StudentInstitutionsFaculties
+            .StudentRequestInstitutionsFaculties
             .AsTracking()
-            .Where(x => x.StudentInstitutionId == studentInstitution.Id)
+            .Where(x => x.StudentRequestInstitutionId == studentInstitution.Id)
             .ToListAsync(cancellationToken);
 
         context
-            .StudentInstitutionsFaculties
+            .StudentRequestInstitutionsFaculties
             .RemoveRange(studentInstitutionFaculties);
 
-        var model = new StudentInstitutionFaculty(studentInstitution, faculty);
-        var entity = new StudentInstitutionFacultyEntity(model);
-        context.StudentInstitutionsFaculties.Add(entity);
+        var model = new StudentRequestInstitutionFaculty(studentInstitution, faculty);
+        var entity = new StudentRequestInstitutionFacultyEntity(model);
+        context.StudentRequestInstitutionsFaculties.Add(entity);
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        return model;
+    }
+
+    public async Task<StudentRequestInstitutionFacultyGroup> Attach(
+        StudentRequestInstitutionFaculty studentInstitutionFaculty,
+        Group group,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentInstitutionFaculty);
+        ArgumentNullException.ThrowIfNull(group);
+
+        if (group.FacultyId != studentInstitutionFaculty.FacultyId)
+            throw new ArgumentException("Invalid Faculty!");
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var studentInstitutionFacultyGroups = await context
+            .StudentRequestInstitutionFacultyGroups
+            .AsTracking()
+            .Where(x => x.StudentRequestInstitutionFacultyId == studentInstitutionFaculty.Id)
+            .ToListAsync(cancellationToken);
+
+        context
+            .StudentRequestInstitutionFacultyGroups
+            .RemoveRange(studentInstitutionFacultyGroups);
+
+        var model = new StudentRequestInstitutionFacultyGroup(studentInstitutionFaculty, group);
+        var entity = new StudentRequestInstitutionFacultyGroupEntity(model);
+        context.StudentRequestInstitutionFacultyGroups.Add(entity);
+
+        await context.SaveChangesAsync(cancellationToken);
 
         return model;
     }

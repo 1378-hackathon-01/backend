@@ -27,7 +27,7 @@ public class StudentService(StorageService storage)
 
         var attachments = await storage
             .Students
-            .GetAttachments(
+            .GetAttachRequest(
                 student: student,
                 cancellationToken: cancellationToken);
 
@@ -51,7 +51,7 @@ public class StudentService(StorageService storage)
 
         var attachments = await storage
             .Students
-            .GetAttachments(
+            .GetAttachRequest(
                 student: student,
                 cancellationToken: cancellationToken);
 
@@ -65,6 +65,30 @@ public class StudentService(StorageService storage)
                 cancellationToken: cancellationToken);
 
         return faculty;
+    }
+
+    public async Task<Group?> GetGroup(
+        Student student,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(student);
+
+        var attachments = await storage
+            .Students
+            .GetAttachRequest(
+                student: student,
+                cancellationToken: cancellationToken);
+
+        if (attachments.Group is null)
+            return null;
+
+        var group = await storage
+            .Groups
+            .Get(
+                id: attachments.Group.GroupId,
+                cancellationToken: cancellationToken);
+
+        return group;
     }
 
     public async Task<StudentSearchResult?> GetByVk(
@@ -197,7 +221,7 @@ public class StudentService(StorageService storage)
         await storage.Students.Delete(student, cancellationToken);
     }
 
-    public async Task AttachToInstitution(
+    public async Task Attach(
         Student student,
         Institution institution,
         CancellationToken cancellationToken = default)
@@ -205,7 +229,7 @@ public class StudentService(StorageService storage)
         ThonArgumentException.ThrowIfNull(student);
         ThonArgumentException.ThrowIfNull(institution);
 
-        var attachments = await storage.Students.GetAttachments(student, cancellationToken);
+        var attachments = await storage.Students.GetAttachRequest(student, cancellationToken);
 
         if (attachments.Institution is not null)
             throw new ThonConflictException("User already attached to the institution, please deattach firstly!");
@@ -213,7 +237,7 @@ public class StudentService(StorageService storage)
         await storage.Students.Attach(student, institution, cancellationToken);
     }
 
-    public async Task AttachToFaculty(
+    public async Task Attach(
         Student student,
         Faculty faculty,
         CancellationToken cancellationToken = default)
@@ -221,7 +245,7 @@ public class StudentService(StorageService storage)
         ThonArgumentException.ThrowIfNull(student);
         ThonArgumentException.ThrowIfNull(faculty);
 
-        var attachments = await storage.Students.GetAttachments(student, cancellationToken);
+        var attachments = await storage.Students.GetAttachRequest(student, cancellationToken);
 
         if (attachments.Faculty is not null)
             throw new ThonConflictException("User already attached to the institution, please deattach firstly!");
@@ -235,22 +259,38 @@ public class StudentService(StorageService storage)
         await storage.Students.Attach(attachments.Institution, faculty, cancellationToken);
     }
 
-    public async Task DeattachFromInstitution(
+    public async Task Attach(
         Student student,
+        Group group,
         CancellationToken cancellationToken = default)
     {
         ThonArgumentException.ThrowIfNull(student);
+        ThonArgumentException.ThrowIfNull(group);
 
-        await storage.Students.DeattachFromInstitution(student, cancellationToken);
+        var attachments = await storage.Students.GetAttachRequest(student, cancellationToken);
+
+        if (attachments.Group is not null)
+            throw new ThonConflictException("User already attached to the group, please deattach firstly!");
+
+        if (attachments.Institution is null)
+            throw new ThonArgumentException("Attach user to the institution firstly!");
+
+        if (attachments.Faculty is null)
+            throw new ThonConflictException("Attach user to the faculty firstly!");
+
+        if (group.FacultyId != attachments.Faculty.FacultyId)
+            throw new ThonArgumentException("Invalid faculty for that institution!");
+
+        await storage.Students.Attach(attachments.Faculty, group, cancellationToken);
     }
 
-    public async Task DeattachFromFaculty(
+    public async Task Deattach(
         Student student,
         CancellationToken cancellationToken = default)
     {
         ThonArgumentException.ThrowIfNull(student);
 
-        await storage.Students.DeattachFromFaculty(student, cancellationToken);
+        await storage.Students.Deattach(student, cancellationToken);
     }
 
     private async Task ValidateVkId(long vkId, Student? student = null, CancellationToken cancellationToken = default)

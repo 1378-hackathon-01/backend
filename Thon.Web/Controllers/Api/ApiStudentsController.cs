@@ -13,7 +13,8 @@ namespace Thon.Web.Controllers.Api;
 public class ApiStudentsController(
     StudentService studentService, 
     InstitutionService institutionService,
-    FacultyService facultyService) 
+    FacultyService facultyService,
+    GroupService groupService) 
     : ControllerBase
 {
     [HttpGet("{studentId}")]
@@ -218,7 +219,7 @@ public class ApiStudentsController(
         if (studentInstitution is not null)
             throw new ThonApiBadRequestException("Student already attached to the institution!");
 
-        await studentService.AttachToInstitution(student, institution);
+        await studentService.Attach(student, institution);
         return new ApiInstitution(institution);
     }
 
@@ -228,7 +229,7 @@ public class ApiStudentsController(
         var student = await studentService.Get(studentId);
         ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
 
-        await studentService.DeattachFromInstitution(student);
+        await studentService.Deattach(student);
     }
 
     [HttpGet("{studentId}/faculty")]
@@ -263,20 +264,51 @@ public class ApiStudentsController(
 
         var faculty = await facultyService.Get(facultyId);
         ThonApiNotFoundException.ThrowIfNull(faculty, "Faculty not found!");
-
+        
         if (studentInstitution.Id != faculty.InstitutionId)
             throw new ThonApiBadRequestException("Invalid faculty for that institution!");
 
-        await studentService.AttachToFaculty(student, faculty);
+        await studentService.Attach(student, faculty);
         return new ApiFaculty(faculty);
     }
 
-    [HttpDelete("{studentId}/faculty")]
-    public async Task DeattachStudentFromFaculty(Guid studentId)
+    [HttpGet("{studentId}/group")]
+    public async Task<ApiGroup> GetStudentGroup(Guid studentId)
     {
         var student = await studentService.Get(studentId);
         ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
 
-        await studentService.DeattachFromFaculty(student);
+        var group = await studentService.GetGroup(student);
+
+        if (group is null)
+            throw new ThonApiNotFoundException("Student no attached to the group!");
+
+        return new ApiGroup(group);
+    }
+
+    [HttpPost("{studentId}/group/{groupId}")]
+    public async Task<ApiGroup> AttachStudentToGroup(Guid studentId, Guid groupId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+
+        var studentGroup = await studentService.GetGroup(student);
+
+        if (studentGroup is not null)
+            throw new ThonApiBadRequestException("Student already attached to the group!");
+
+        var studentFaculty = await studentService.GetFaculty(student);
+
+        if (studentFaculty is null)
+            throw new ThonApiBadRequestException("Student not attached to the faculty!");
+
+        var group = await groupService.Get(groupId);
+        ThonApiNotFoundException.ThrowIfNull(group, "Faculty not found!");
+
+        if (studentFaculty.Id != group.FacultyId)
+            throw new ThonApiBadRequestException("Invalid faculty for that institution!");
+
+        await studentService.Attach(student, group);
+        return new ApiGroup(group);
     }
 }

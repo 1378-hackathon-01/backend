@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Thon.Storage.Entities;
 
 namespace Thon.Storage.Configurations;
 
-internal class ApiTokenEntityConfiguration : BaseModelEntityConfiguration<ApiTokenEntity>
+internal class ApiTokenEntityConfiguration : BaseModelEntityConfiguration<ApiTokenEntity>, IEntityTypeConfiguration<ApiTokenEntity>
 {
     public new void Configure(EntityTypeBuilder<ApiTokenEntity> builder)
     {

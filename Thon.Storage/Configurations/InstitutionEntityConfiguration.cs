@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Thon.Storage.Entities;
 
 namespace Thon.Storage.Configurations;
 
-internal class InstitutionEntityConfiguration : BaseModelEntityConfiguration<InstitutionEntity>
+internal class InstitutionEntityConfiguration : BaseModelEntityConfiguration<InstitutionEntity>, IEntityTypeConfiguration<InstitutionEntity>
 {
     public new void Configure(EntityTypeBuilder<InstitutionEntity> builder)
     {

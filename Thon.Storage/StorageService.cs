@@ -20,6 +20,8 @@ public class StorageService
 
     public FacultyStorage Faculties { get; }
 
+    public GroupStorage Groups { get; }
+
     public StorageService(IStorageConfiguration configuration)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configuration.ConnectionString);
@@ -33,5 +35,6 @@ public class StorageService
         ApiTokens = new ApiTokenStorage(dbContextFactory);
         Faculties = new FacultyStorage(dbContextFactory);
         Students = new StudentStorage(dbContextFactory);
+        Groups = new GroupStorage(dbContextFactory);
     }
 }

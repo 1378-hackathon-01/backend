@@ -4,9 +4,9 @@ using Thon.Storage.Entities;
 
 namespace Thon.Storage.Configurations;
 
-internal class StudentInstitutionEntityConfiguration : BaseModelEntityConfiguration<StudentInstitutionEntity>
+internal class StudentRequestInstitutionEntityConfiguration : BaseModelEntityConfiguration<StudentRequestInstitutionEntity>, IEntityTypeConfiguration<StudentRequestInstitutionEntity>
 {
-    public new void Configure(EntityTypeBuilder<StudentInstitutionEntity> builder)
+    public new void Configure(EntityTypeBuilder<StudentRequestInstitutionEntity> builder)
     {
         base.Configure(builder);
 

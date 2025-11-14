@@ -4,7 +4,7 @@ using Thon.Storage.Entities;
 
 namespace Thon.Storage.Configurations;
 
-internal class UserAdminAuthEntityConfiguration : BaseModelEntityConfiguration<UserAdminAuthEntity>
+internal class UserAdminAuthEntityConfiguration : BaseModelEntityConfiguration<UserAdminAuthEntity>, IEntityTypeConfiguration<UserAdminAuthEntity>
 {
     public new void Configure(EntityTypeBuilder<UserAdminAuthEntity> builder)
     {
