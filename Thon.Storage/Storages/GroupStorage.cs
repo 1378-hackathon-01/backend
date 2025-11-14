@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Thon.Core.Models;
 using Thon.Storage.Entities;
+using Thon.Storage.Models;
 
 namespace Thon.Storage.Storages;
 
@@ -71,5 +72,73 @@ public class GroupStorage
         context.Groups.Add(entity);
 
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<StudentRequestInstitutionFacultyGroup>> GetRequests(
+        Group group,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(group);
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var entities = await context
+            .StudentRequestInstitutionFacultyGroups
+            .AsNoTracking()
+            .Where(x => x.GroupId == group.Id)
+            .OrderBy(x => x.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        var models = entities
+            .Select(x => x.GetModel())
+            .ToList();
+
+        return models;
+    }
+
+    public async Task<IReadOnlyList<StudentApproved>> GetApproves(
+       Group group,
+       CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(group);
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var entities = await context
+            .StudentsApproved
+            .AsNoTracking()
+            .Where(x => x.GroupId == group.Id)
+            .OrderBy(x => x.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        var models = entities
+            .Select(x => x.GetModel())
+            .ToList();
+
+        return models;
+    }
+
+    public async Task<StudentRequestChain> GetRequestChain(
+        StudentRequestInstitutionFacultyGroup studentRequestGroup,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentRequestGroup);
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var studentRequestFaculty = await context
+            .StudentRequestInstitutionsFaculties
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == studentRequestGroup.StudentRequestInstitutionFacultyId, cancellationToken);
+
+        var studentRequestInstitution = await context
+            .StudentRequestInstitutions
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == studentRequestFaculty.StudentRequestInstitutionId, cancellationToken);
+
+        return new StudentRequestChain(
+            studentRequestInstitution.GetModel(),
+            studentRequestFaculty.GetModel(),
+            studentRequestGroup);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Thon.App.Exceptions;
+using Thon.App.Models;
 using Thon.Core.Models;
 using Thon.Storage;
 
@@ -68,5 +69,48 @@ public class GroupService(StorageService storage)
             .Delete(
                 group: group,
                 cancellationToken: cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<StudentGroupRequestChain>> GetRequests(
+        Group group,
+        CancellationToken cancellationToken = default)
+    {
+        ThonArgumentException.ThrowIfNull(group);
+
+        var studentRequestsGroup = await storage
+            .Groups.GetRequests(
+                group: group,
+                cancellationToken: cancellationToken);
+
+        var chains = new List<StudentGroupRequestChain>();
+
+        foreach (var studentRequestGroup in studentRequestsGroup)
+        {
+            var chain = await storage.Groups.GetRequestChain(
+                studentRequestGroup,
+                cancellationToken);
+
+            chains.Add(new StudentGroupRequestChain(
+                institution: chain.Institution,
+                faculty: chain.Faculty,
+                group: chain.Group));
+        }
+
+        return chains;
+    }
+
+    public async Task<IReadOnlyList<StudentApproved>> GetApproves(
+        Group group,
+        CancellationToken cancellationToken = default)
+    {
+        ThonArgumentException.ThrowIfNull(group);
+
+        var approves = await storage
+            .Groups
+            .GetApproves(
+                group: group,
+                cancellationToken: cancellationToken);
+
+        return approves;
     }
 }

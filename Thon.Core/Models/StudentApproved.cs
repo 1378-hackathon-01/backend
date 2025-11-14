@@ -11,14 +11,14 @@ public class StudentApproved : BaseModel
     public Guid StudentId { get; }
 
     public StudentApproved(
-        Institution institution,
-        Faculty faculty,
-        Group group,
-        Student student)
+        Student student,
+        StudentRequestInstitution institution,
+        StudentRequestInstitutionFaculty faculty,
+        StudentRequestInstitutionFacultyGroup group)
     {
-        InstitutionId = institution.Id;
-        FacultyId = faculty.Id;
-        GroupId = group.Id;
+        InstitutionId = institution.InstitutionId;
+        FacultyId = faculty.FacultyId;
+        GroupId = group.GroupId;
         StudentId = student.Id;
     }
 

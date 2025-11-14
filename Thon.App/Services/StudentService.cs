@@ -1,4 +1,5 @@
-﻿using Thon.App.Exceptions;
+﻿using System.Net.Mail;
+using Thon.App.Exceptions;
 using Thon.App.Models;
 using Thon.Core.Models;
 using Thon.Storage;
@@ -24,23 +25,36 @@ public class StudentService(StorageService storage)
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(student);
+        var approve = await ApproveGet(student, cancellationToken);
 
-        var attachments = await storage
-            .Students
-            .GetAttachRequest(
-                student: student,
-                cancellationToken: cancellationToken);
+        Guid? institutionId;
 
-        if (attachments.Institution is null)
-            return null;
+        if (approve is not null)
+            institutionId = approve.InstitutionId;
 
-        var institution = await storage
-            .Institutions
-            .Get(
-                id: attachments.Institution.InstitutionId,
-                cancellationToken: cancellationToken);
+        else
+        {
+            var attachments = await storage
+                .Students
+                .GetRequest(
+                    student: student,
+                    cancellationToken: cancellationToken);
 
-        return institution;
+            institutionId = attachments.Institution?.InstitutionId;
+        }
+
+        if (institutionId is not null)
+        {
+            var institution = await storage
+                .Institutions
+                .Get(
+                    id: institutionId.Value,
+                    cancellationToken: cancellationToken);
+
+            return institution;
+        }
+
+        return null;
     }
 
     public async Task<Faculty?> GetFaculty(
@@ -49,22 +63,36 @@ public class StudentService(StorageService storage)
     {
         ArgumentNullException.ThrowIfNull(student);
 
-        var attachments = await storage
-            .Students
-            .GetAttachRequest(
-                student: student,
-                cancellationToken: cancellationToken);
+        var approve = await ApproveGet(student, cancellationToken);
 
-        if (attachments.Faculty is null)
-            return null;
+        Guid? facultyId;
 
-        var faculty = await storage
-            .Faculties
-            .Get(
-                id: attachments.Faculty.FacultyId,
-                cancellationToken: cancellationToken);
+        if (approve is not null)
+            facultyId = approve.FacultyId;
 
-        return faculty;
+        else
+        {
+            var attachments = await storage
+                .Students
+                .GetRequest(
+                    student: student,
+                    cancellationToken: cancellationToken);
+
+            facultyId = attachments.Faculty?.FacultyId;
+        }
+
+        if (facultyId is not null)
+        {
+            var faculty = await storage
+                .Faculties
+                .Get(
+                    id: facultyId.Value,
+                    cancellationToken: cancellationToken);
+
+            return faculty;
+        }
+
+        return null;
     }
 
     public async Task<Group?> GetGroup(
@@ -73,22 +101,36 @@ public class StudentService(StorageService storage)
     {
         ArgumentNullException.ThrowIfNull(student);
 
-        var attachments = await storage
-            .Students
-            .GetAttachRequest(
-                student: student,
-                cancellationToken: cancellationToken);
+        var approve = await ApproveGet(student, cancellationToken);
 
-        if (attachments.Group is null)
-            return null;
+        Guid? groupId;
 
-        var group = await storage
-            .Groups
-            .Get(
-                id: attachments.Group.GroupId,
-                cancellationToken: cancellationToken);
+        if (approve is not null)
+            groupId = approve.GroupId;
 
-        return group;
+        else
+        {
+            var attachments = await storage
+                .Students
+                .GetRequest(
+                    student: student,
+                    cancellationToken: cancellationToken);
+
+            groupId = attachments.Group?.GroupId;
+        }
+
+        if (groupId is not null)
+        {
+            var group = await storage
+                .Groups
+                .Get(
+                    id: groupId.Value,
+                    cancellationToken: cancellationToken);
+
+            return group;
+        }
+
+        return null;
     }
 
     public async Task<StudentSearchResult?> GetByVk(
@@ -229,7 +271,7 @@ public class StudentService(StorageService storage)
         ThonArgumentException.ThrowIfNull(student);
         ThonArgumentException.ThrowIfNull(institution);
 
-        var attachments = await storage.Students.GetAttachRequest(student, cancellationToken);
+        var attachments = await storage.Students.GetRequest(student, cancellationToken);
 
         if (attachments.Institution is not null)
             throw new ThonConflictException("User already attached to the institution, please deattach firstly!");
@@ -245,7 +287,7 @@ public class StudentService(StorageService storage)
         ThonArgumentException.ThrowIfNull(student);
         ThonArgumentException.ThrowIfNull(faculty);
 
-        var attachments = await storage.Students.GetAttachRequest(student, cancellationToken);
+        var attachments = await storage.Students.GetRequest(student, cancellationToken);
 
         if (attachments.Faculty is not null)
             throw new ThonConflictException("User already attached to the institution, please deattach firstly!");
@@ -267,7 +309,7 @@ public class StudentService(StorageService storage)
         ThonArgumentException.ThrowIfNull(student);
         ThonArgumentException.ThrowIfNull(group);
 
-        var attachments = await storage.Students.GetAttachRequest(student, cancellationToken);
+        var attachments = await storage.Students.GetRequest(student, cancellationToken);
 
         if (attachments.Group is not null)
             throw new ThonConflictException("User already attached to the group, please deattach firstly!");
@@ -291,6 +333,104 @@ public class StudentService(StorageService storage)
         ThonArgumentException.ThrowIfNull(student);
 
         await storage.Students.Deattach(student, cancellationToken);
+    }
+
+    public async Task<StudentGroupRequestChain?> GetRequest(
+        Student student,
+        CancellationToken cancellationToken = default)
+    {
+        ThonArgumentException.ThrowIfNull(student);
+
+        var chain = await storage
+            .Students
+            .GetRequestChain(
+                student,
+                cancellationToken);
+
+        return chain is not null
+            ? new StudentGroupRequestChain(
+                institution: chain.Institution,
+                faculty: chain.Faculty,
+                group: chain.Group)
+            : null;
+    }
+
+    public async Task<StudentApproved> RequestApprove(
+        Student student, 
+        StudentGroupRequestChain requestChain, 
+        CancellationToken cancellationToken = default)
+    {
+        ThonArgumentException.ThrowIfNull(student);
+        ThonArgumentException.ThrowIfNull(requestChain);
+
+        ThonArgumentException.ThrowIfNull(requestChain.Institution);
+        ThonArgumentException.ThrowIfNull(requestChain.Faculty);
+        ThonArgumentException.ThrowIfNull(requestChain.Group);
+
+        ThonArgumentException.ThrowIf(requestChain.Institution.StudentId != student.Id);
+        ThonArgumentException.ThrowIf(requestChain.Institution.Id != requestChain.Faculty.StudentRequestInstitutionId);
+        ThonArgumentException.ThrowIf(requestChain.Faculty.Id != requestChain.Group.StudentRequestInstitutionFacultyId);
+
+        var approve = await storage
+            .Students
+            .RequestApprove(
+                student: student,
+                institution: requestChain.Institution,
+                faculty: requestChain.Faculty,
+                group: requestChain.Group,
+                cancellationToken: cancellationToken);
+
+        return approve;
+    }
+
+    public async Task RequestDecline(
+        Student student,
+        StudentGroupRequestChain requestChain,
+        CancellationToken cancellationToken = default)
+    {
+        ThonArgumentException.ThrowIfNull(student);
+        ThonArgumentException.ThrowIfNull(requestChain);
+
+        ThonArgumentException.ThrowIfNull(requestChain.Institution);
+        ThonArgumentException.ThrowIfNull(requestChain.Faculty);
+        ThonArgumentException.ThrowIfNull(requestChain.Group);
+
+        ThonArgumentException.ThrowIf(requestChain.Institution.StudentId != student.Id);
+        ThonArgumentException.ThrowIf(requestChain.Institution.Id != requestChain.Faculty.StudentRequestInstitutionId);
+        ThonArgumentException.ThrowIf(requestChain.Faculty.Id != requestChain.Group.StudentRequestInstitutionFacultyId);
+
+        await storage
+            .Students
+            .RequestDecline(
+                student: student,
+                institution: requestChain.Institution,
+                faculty: requestChain.Faculty,
+                group: requestChain.Group,
+                cancellationToken: cancellationToken);
+    }
+
+    public async Task<StudentApproved?> ApproveGet(Student student, CancellationToken cancellationToken = default)
+    {
+        ThonArgumentException.ThrowIfNull(student);
+
+        var approve = await storage
+            .Students
+            .ApproveGet(
+                student: student, 
+                cancellationToken: cancellationToken);
+
+        return approve;
+    }
+
+    public async Task ApproveDelete(StudentApproved approve, CancellationToken cancellationToken = default)
+    {
+        ThonArgumentException.ThrowIfNull(approve);
+
+        await storage
+            .Students
+            .ApproveDelete(
+                studentApprove: approve,
+                cancellationToken: cancellationToken);
     }
 
     private async Task ValidateVkId(long vkId, Student? student = null, CancellationToken cancellationToken = default)

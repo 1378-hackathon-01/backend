@@ -144,7 +144,7 @@ public class StudentStorage
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<StudentAttachRequest> GetAttachRequest(
+    public async Task<StudentRequest> GetRequest(
         Student student, 
         CancellationToken cancellationToken = default)
     {
@@ -171,7 +171,7 @@ public class StudentStorage
                     .AsNoTracking()
                     .SingleOrDefaultAsync(x => x.StudentRequestInstitutionFacultyId == studentInstitutionFaculty.Id, cancellationToken);
 
-                return new StudentAttachRequest
+                return new StudentRequest
                 {
                     Institution = studentInstitution.GetModel(),
                     Faculty = studentInstitutionFaculty.GetModel(),
@@ -179,14 +179,14 @@ public class StudentStorage
                 };
             }
 
-            return new StudentAttachRequest
+            return new StudentRequest
             {
                 Institution = studentInstitution.GetModel(),
                 Faculty = studentInstitutionFaculty?.GetModel(),
             };
         }
 
-        return new StudentAttachRequest
+        return new StudentRequest
         {
             Institution = studentInstitution?.GetModel()
         };
@@ -283,5 +283,146 @@ public class StudentStorage
         await context.SaveChangesAsync(cancellationToken);
 
         return model;
+    }
+
+    public async Task<StudentRequestChain?> GetRequestChain(
+        Student student,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(student);
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var studentRequestInstitution = await context
+            .StudentRequestInstitutions
+            .SingleOrDefaultAsync(x => x.StudentId == student.Id, cancellationToken);
+
+        if (studentRequestInstitution is null) return null;
+
+        var studentRequestFaculty = await context
+            .StudentRequestInstitutionsFaculties
+            .SingleOrDefaultAsync(x => x.StudentRequestInstitutionId == studentRequestInstitution.Id, cancellationToken);
+
+        if (studentRequestFaculty is null) return null;
+
+        var studentRequestGroup = await context
+            .StudentRequestInstitutionFacultyGroups
+            .SingleOrDefaultAsync(x => x.StudentRequestInstitutionFacultyId == studentRequestFaculty.Id, cancellationToken);
+
+        if (studentRequestGroup is null) return null;
+
+        return new StudentRequestChain(
+            institution: studentRequestInstitution.GetModel(),
+            faculty: studentRequestFaculty.GetModel(),
+            group: studentRequestGroup.GetModel());
+    }
+
+    public async Task<StudentApproved> RequestApprove(
+        Student student,
+        StudentRequestInstitution institution,
+        StudentRequestInstitutionFaculty faculty,
+        StudentRequestInstitutionFacultyGroup group,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(student);
+        ArgumentNullException.ThrowIfNull(institution);
+        ArgumentNullException.ThrowIfNull(faculty);
+        ArgumentNullException.ThrowIfNull(group);
+
+        if (institution.StudentId != student.Id)
+            throw new ArgumentException();
+
+        if (faculty.StudentRequestInstitutionId != institution.Id)
+            throw new ArgumentException();
+
+        if (group.StudentRequestInstitutionFacultyId != faculty.Id)
+            throw new ArgumentException();
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var studentAlreadyApproved = await context
+            .StudentsApproved
+            .AnyAsync(x => x.StudentId == student.Id, cancellationToken);
+
+        if (studentAlreadyApproved)
+            throw new InvalidOperationException("Student already approved!");
+
+        var approveModel = new StudentApproved(
+            student: student,
+            institution: institution,
+            faculty: faculty,
+            group: group);
+
+        var approveEntity = new StudentApprovedEntity(approveModel);
+        context.StudentsApproved.Add(approveEntity);
+
+        var institutionEntity = new StudentRequestInstitutionEntity(institution);
+        context.StudentRequestInstitutions.Attach(institutionEntity);
+        context.StudentRequestInstitutions.Remove(institutionEntity);
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        return approveModel;
+    }
+
+    public async Task RequestDecline(
+        Student student,
+        StudentRequestInstitution institution,
+        StudentRequestInstitutionFaculty faculty,
+        StudentRequestInstitutionFacultyGroup group,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(student);
+        ArgumentNullException.ThrowIfNull(institution);
+        ArgumentNullException.ThrowIfNull(faculty);
+        ArgumentNullException.ThrowIfNull(group);
+
+        if (institution.StudentId != student.Id)
+            throw new ArgumentException();
+
+        if (faculty.StudentRequestInstitutionId != institution.Id)
+            throw new ArgumentException();
+
+        if (group.StudentRequestInstitutionFacultyId != faculty.Id)
+            throw new ArgumentException();
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var institutionEntity = new StudentRequestInstitutionEntity(institution);
+        context.StudentRequestInstitutions.Attach(institutionEntity);
+        context.StudentRequestInstitutions.Remove(institutionEntity);
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<StudentApproved?> ApproveGet(
+        Student student, 
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(student);
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var entity = await context
+            .StudentsApproved
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.StudentId == student.Id, cancellationToken);
+
+        return entity?.GetModel();
+    }
+
+    public async Task ApproveDelete(
+        StudentApproved studentApprove,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentApprove);
+
+        using var context = _dbContextFactory.CreateDbContext();
+
+        var entity = new StudentApprovedEntity(studentApprove);
+        context.StudentsApproved.Attach(entity);
+        context.StudentsApproved.Remove(entity);
+
+        await context.SaveChangesAsync(cancellationToken);
     }
 }

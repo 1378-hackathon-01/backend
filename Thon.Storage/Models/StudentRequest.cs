@@ -2,7 +2,7 @@
 
 namespace Thon.Storage.Models;
 
-public class StudentAttachRequest
+public class StudentRequest
 {
     public StudentRequestInstitution? Institution { get; init; } 
 

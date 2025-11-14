@@ -311,4 +311,17 @@ public class ApiStudentsController(
         await studentService.Attach(student, group);
         return new ApiGroup(group);
     }
+
+    [HttpGet("{studentId}/status")]
+    public async Task<ApiStudentStatus> StudentStatus(Guid studentId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+
+        var studentGroup = await studentService.GetGroup(student);
+        ThonApiNotFoundException.ThrowIfNull(studentGroup, "User not attached to the group!");
+
+        var approve = await studentService.ApproveGet(student);
+        return new ApiStudentStatus(approve is not null);
+    }
 }
