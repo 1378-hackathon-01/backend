@@ -21,6 +21,11 @@ public class ThonConfigurationGenerator(IConfiguration configuration)
             ?? configuration.GetValue<string>("Configuration:Initialization:AdminPassword")
             ?? throw new InvalidOperationException("Initialization Admin Password not defined!");
 
+        var initialApiToken =
+            Environment.GetEnvironmentVariable("API_TOKEN")
+            ?? configuration.GetValue<string>("Configuration:Initialization:ApiToken")
+            ?? throw new InvalidOperationException("Initialization Admin Password not defined!");
+
         var hasherSalt1 =
            Environment.GetEnvironmentVariable("HASH_SALT_1")
            ?? configuration.GetValue<string>("Configuration:Hasher:Salt1")
@@ -36,7 +41,8 @@ public class ThonConfigurationGenerator(IConfiguration configuration)
 
         var initializatinConfiguration = new ThonConfigurationInitialization(
             adminLogin: initialAdministratorLogin, 
-            adminPassword: initialAdministratorPassword);
+            adminPassword: initialAdministratorPassword,
+            apiToken: initialApiToken);
 
         var hashesConfiguration = new ThonConfigurationHasher(
             salt1: hasherSalt1,

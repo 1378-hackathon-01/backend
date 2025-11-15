@@ -8,12 +8,18 @@ public class ThonConfigurationInitialization
 
     public string AdminPassword { get; }
 
-    public ThonConfigurationInitialization(string adminLogin, string adminPassword)
+    public string ApiToken { get; }
+
+    public ThonConfigurationInitialization(
+        string adminLogin, 
+        string adminPassword, 
+        string apiToken)
     {
         ThonArgumentException.ThrowIfNullOrWhiteSpace(adminLogin);
         ThonArgumentException.ThrowIfNullOrWhiteSpace(adminPassword);
 
         AdminLogin = adminLogin;
         AdminPassword = adminPassword;
+        ApiToken = apiToken;
     }
 }

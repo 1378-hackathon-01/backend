@@ -42,23 +42,26 @@ public class ApiTokenService(
         return token;
     }
 
-    public async Task<ApiTokenCreateResult> Create(CancellationToken cancellationToken = default)
+    public async Task<ApiTokenCreateResult> Create(string? token = null, CancellationToken cancellationToken = default)
     {
-        var tokenRawPart1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var tokenRawPart2 = Guid.NewGuid().ToString().Replace("-", "").ToUpper();
-        var tokenRaw = $"{tokenRawPart1}_{tokenRawPart2}";
+        if (token is null)
+        {
+            var tokenRawPart1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var tokenRawPart2 = Guid.NewGuid().ToString().Replace("-", "").ToUpper();
+            token = $"{tokenRawPart1}_{tokenRawPart2}";
+        }
 
-        var tokenHash = hasher.Sha256Salted(tokenRaw);
-        var token = new ApiToken(tokenHash);
+        var tokenHash = hasher.Sha256Salted(token);
+        var tokenData = new ApiToken(tokenHash);
 
         await storage.ApiTokens
             .Insert(
-                model: token, 
+                model: tokenData, 
                 cancellationToken: cancellationToken);
 
         return new ApiTokenCreateResult(
-            tokenRaw: tokenRaw,
-            token: token);
+            tokenRaw: token,
+            token: tokenData);
     }
 
     public async Task Delete(
