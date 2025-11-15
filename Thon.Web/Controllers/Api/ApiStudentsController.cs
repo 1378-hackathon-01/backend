@@ -14,7 +14,8 @@ public class ApiStudentsController(
     StudentService studentService, 
     InstitutionService institutionService,
     FacultyService facultyService,
-    GroupService groupService) 
+    GroupService groupService,
+    SubjectService subjectService) 
     : ControllerBase
 {
     [HttpGet("{studentId}")]
@@ -323,5 +324,49 @@ public class ApiStudentsController(
 
         var approve = await studentService.ApproveGet(student);
         return new ApiStudentStatus(approve is not null);
+    }
+
+    [HttpGet("{studentId}/subjects")]
+    public async Task<IReadOnlyList<ApiSubjectBrief>> StudentSubjects(Guid studentId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+
+        var studentGroup = await studentService.GetGroup(student);
+        ThonApiNotFoundException.ThrowIfNull(studentGroup, "User not attached to the group!");
+
+        var approve = await studentService.ApproveGet(student);
+
+        if (approve is null)
+            throw new ThonApiForbiddenException("Student not approved!");
+
+        var subjects = await subjectService.Get(studentGroup);
+
+        return subjects
+            .Select(x => new ApiSubjectBrief(x))
+            .ToList();
+    }
+
+    [HttpGet("{studentId}/subjects/{subjectId}")]
+    public async Task<ApiSubjectFull> StudentSubjectsFull(Guid studentId, Guid subjectId)
+    {
+        var student = await studentService.Get(studentId);
+        ThonApiNotFoundException.ThrowIfNull(student, "Student not found!");
+
+        var studentGroup = await studentService.GetGroup(student);
+        ThonApiNotFoundException.ThrowIfNull(studentGroup, "User not attached to the group!");
+
+        var approve = await studentService.ApproveGet(student);
+
+        if (approve is null)
+            throw new ThonApiForbiddenException("Student not approved!");
+
+        var subject = await subjectService.Get(subjectId);
+        ThonApiNotFoundException.ThrowIfNull(subject, "Subject not found!");
+
+        var subjectGroup = await subjectService.GetGroupSubject(studentGroup, subject);
+        ThonApiNotFoundException.ThrowIfNull(subjectGroup, "Subject Group not found!");
+
+        return new ApiSubjectFull(subject, subjectGroup);
     }
 }

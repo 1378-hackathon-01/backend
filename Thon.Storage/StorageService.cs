@@ -22,6 +22,10 @@ public class StorageService
 
     public GroupStorage Groups { get; }
 
+    public SubjectStorage Subjects { get; }
+
+    public GroupSubjectStorage GroupSubjects { get; }
+
     public StorageService(IStorageConfiguration configuration)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configuration.ConnectionString);
@@ -35,6 +39,8 @@ public class StorageService
         ApiTokens = new ApiTokenStorage(dbContextFactory);
         Faculties = new FacultyStorage(dbContextFactory);
         Students = new StudentStorage(dbContextFactory);
+        Subjects = new SubjectStorage(dbContextFactory);
+        GroupSubjects = new GroupSubjectStorage(dbContextFactory);
         Groups = new GroupStorage(dbContextFactory);
     }
 }

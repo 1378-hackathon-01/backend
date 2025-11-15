@@ -17,6 +17,7 @@ public class InstitutionGroupsController(
     InstitutionService institutionService,
     FacultyService facultyService,
     StudentService studentService,
+    SubjectService subjectService,
     GroupService groupService)
     : BaseInstitutionController(
         userInstitutionService,
@@ -88,6 +89,118 @@ public class InstitutionGroupsController(
             throw new ThonApiNotFoundException("Group not found!");
 
         await groupService.Delete(group);
+    }
+
+    [HttpGet("{facultyId}/groups/{groupId}/subjects")]
+    public async Task<IReadOnlyList<InstitutionGroupSubjectBrief>> GetSubjects(Guid facultyId, Guid groupId)
+    {
+        var institution = await GetInstitution();
+        var faculty = await facultyService.Get(facultyId);
+        var group = await groupService.Get(groupId);
+
+        if (faculty is null || faculty.InstitutionId != institution.Id)
+            throw new ThonApiNotFoundException("Faculty not found!");
+
+        if (group is null || group.FacultyId != faculty.Id)
+            throw new ThonApiNotFoundException("Group not found!");
+
+        var subjects = await subjectService.Get(group);
+
+        return subjects
+            .Select(x => new InstitutionGroupSubjectBrief(x))
+            .ToList();
+    }
+
+    [HttpPost("{facultyId}/groups/{groupId}/subjects/{subjectId}")]
+    public async Task AddSubject(Guid facultyId, Guid groupId, Guid subjectId)
+    {
+        var institution = await GetInstitution();
+        var subject = await subjectService.Get(subjectId);
+        var faculty = await facultyService.Get(facultyId);
+        var group = await groupService.Get(groupId);
+
+        if (subject is null || subject.InstitutionId != institution.Id)
+            throw new ThonApiNotFoundException("Subject not found!");
+
+        if (faculty is null || faculty.InstitutionId != institution.Id)
+            throw new ThonApiNotFoundException("Faculty not found!");
+
+        if (group is null || group.FacultyId != faculty.Id)
+            throw new ThonApiNotFoundException("Group not found!");
+
+        await subjectService.Add(group, subject); 
+    }
+
+    [HttpDelete("{facultyId}/groups/{groupId}/subjects/{subjectId}")]
+    public async Task RemoveSubject(Guid facultyId, Guid groupId, Guid subjectId)
+    {
+        var institution = await GetInstitution();
+        var subject = await subjectService.Get(subjectId);
+        var faculty = await facultyService.Get(facultyId);
+        var group = await groupService.Get(groupId);
+
+        if (subject is null || subject.InstitutionId != institution.Id)
+            throw new ThonApiNotFoundException("Subject not found!");
+
+        if (faculty is null || faculty.InstitutionId != institution.Id)
+            throw new ThonApiNotFoundException("Faculty not found!");
+
+        if (group is null || group.FacultyId != faculty.Id)
+            throw new ThonApiNotFoundException("Group not found!");
+
+        await subjectService.Remove(group, subject);
+    }
+
+    [HttpPut("{facultyId}/groups/{groupId}/subjects/{subjectId}")]
+    public async Task UpdateGroupSubject(
+       Guid facultyId,
+       Guid groupId,
+       Guid subjectId,
+       [FromBody] InstitutionGroupSubjectPatch request)
+    {
+        ThonApiBadRequestException.ThrowIfNull(request);
+
+        var institution = await GetInstitution();
+        var subject = await subjectService.Get(subjectId);
+        var faculty = await facultyService.Get(facultyId);
+        var group = await groupService.Get(groupId);
+
+        if (subject is null || subject.InstitutionId != institution.Id)
+            throw new ThonApiNotFoundException("Subject not found!");
+
+        if (faculty is null || faculty.InstitutionId != institution.Id)
+            throw new ThonApiNotFoundException("Faculty not found!");
+
+        if (group is null || group.FacultyId != faculty.Id)
+            throw new ThonApiNotFoundException("Group not found!");
+
+        await subjectService.Update(group, subject, content: request.Content);
+    }
+
+    [HttpGet("{facultyId}/groups/{groupId}/subjects/{subjectId}")]
+    public async Task<InstitutionGroupSubjectFull> GetGroupSubject(
+        Guid facultyId, 
+        Guid groupId, 
+        Guid subjectId)
+    {
+        var institution = await GetInstitution();
+        var subject = await subjectService.Get(subjectId);
+        var faculty = await facultyService.Get(facultyId);
+        var group = await groupService.Get(groupId);
+
+        if (subject is null || subject.InstitutionId != institution.Id)
+            throw new ThonApiNotFoundException("Subject not found!");
+
+        if (faculty is null || faculty.InstitutionId != institution.Id)
+            throw new ThonApiNotFoundException("Faculty not found!");
+
+        if (group is null || group.FacultyId != faculty.Id)
+            throw new ThonApiNotFoundException("Group not found!");
+
+        var groupSubject = await subjectService.GetGroupSubject(group, subject);
+        ThonApiNotFoundException.ThrowIfNull(groupSubject, "Group Subject not found!");
+
+        return new InstitutionGroupSubjectFull(subject, groupSubject);
     }
 
     [HttpDelete("{facultyId}/groups/{groupId}/students/approved/{studentId}")]

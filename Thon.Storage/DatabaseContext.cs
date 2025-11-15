@@ -32,6 +32,10 @@ internal class DatabaseContext : DbContext
 
     public DbSet<StudentRequestInstitutionFacultyGroupEntity> StudentRequestInstitutionFacultyGroups => Set<StudentRequestInstitutionFacultyGroupEntity>();
 
+    public DbSet<SubjectEntity> Subjects => Set<SubjectEntity>();
+
+    public DbSet<GroupSubjectEntity> GroupSubjects => Set<GroupSubjectEntity>();
+
     public DatabaseContext(DbContextOptions<DatabaseContext> options): base(options)
     {
         Database.EnsureCreated();
@@ -45,10 +49,14 @@ internal class DatabaseContext : DbContext
         modelBuilder.ApplyConfiguration<UserAdminAuthEntity>(new UserAdminAuthEntityConfiguration());
 
         modelBuilder.ApplyConfiguration<InstitutionEntity>(new InstitutionEntityConfiguration());
-        modelBuilder.ApplyConfiguration<UserInstitutionEntity>(new UserInstitutionEntityConfiguration());
-        modelBuilder.ApplyConfiguration<UserInstitutionAuthEntity>(new UserInstitutionAuthEntityConfiguration());
         modelBuilder.ApplyConfiguration<FacultyEntity>(new FacultyEntityConfiguration());
         modelBuilder.ApplyConfiguration<GroupEntity>(new GroupEntityConfiguration());
+        
+        modelBuilder.ApplyConfiguration<SubjectEntity>(new SubjectEntityConfiguration());
+        modelBuilder.ApplyConfiguration<GroupSubjectEntity>(new GroupSubjectEntityConfiguration());
+
+        modelBuilder.ApplyConfiguration<UserInstitutionEntity>(new UserInstitutionEntityConfiguration());
+        modelBuilder.ApplyConfiguration<UserInstitutionAuthEntity>(new UserInstitutionAuthEntityConfiguration());
 
         modelBuilder.ApplyConfiguration<StudentEntity>(new StudentEntityConfiguration());
         modelBuilder.ApplyConfiguration<StudentRequestInstitutionEntity>(new StudentRequestInstitutionEntityConfiguration());
